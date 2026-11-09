@@ -77,15 +77,15 @@ input {
 
     width: 100%;
 
-    max-width: 1320px;
+    max-width: 1000px;
 
     margin: 0 auto;
 
     display: grid;
 
-    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto;
 
     gap: 18px 24px;
 
@@ -445,15 +445,9 @@ input {
 
 .current-weather-section {
 
-    grid-column: 1;
+    grid-column: 1 / -1;
 
     grid-row: 3;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 15px;
 
     width: 100%;
 
@@ -467,19 +461,17 @@ input {
 
 .current-weather-card {
 
-    min-height: 165px;
+    min-height: 250px;
 
     width: 100%;
 
     display: flex;
 
-    align-items: flex-start;
+    flex-direction: column;
 
-    justify-content: space-between;
+    gap: 18px;
 
-    gap: 20px;
-
-    padding: 25px 30px;
+    padding: 20px 24px 16px;
 
     border: 1px solid rgba(255, 255, 255, 0.27);
 
@@ -613,89 +605,31 @@ input {
 
 ========================================== */
 
-.weather-details-row {
+/* Weather metrics are grouped inside the main current-weather card. */
 
-    grid-column: 1;
-
-    grid-row: 5;
+.current-weather-card > .weather-details-grid {
 
     width: 100%;
 
-    padding: 0;
-
-    color: #ffffff;
-
-    border: 1px solid rgba(255, 255, 255, 0.24);
-
-    border-radius: 23px;
-
-    backdrop-filter: blur(18px);
-
-    -webkit-backdrop-filter: blur(18px);
-
-    /* background, border-color and box-shadow for this card are set once,
-       for both themes, in section 15 (THEME-ONLY APP BACKGROUND) below.
-       Edit the color there, not here. */
+    margin: 0;
 
 }
 
-/* WeatherDetails component wrappers */
+/* Weather metrics sit beneath the main weather and tip. */
 
-.weather-details-row > * {
-
-    width: 100%;
-
-    margin: 0 !important;
-
-    padding: 15px 22px !important;
-
-    background: transparent !important;
-
-    border: none !important;
-
-    border-radius: 0 !important;
-
-    box-shadow: none !important;
-
-}
-
-.weather-details-row h2 {
-
-    display: block;
-
-    margin: 0 0 14px;
-
-    color: rgba(255, 255, 255, 0.7);
-
-    font-size: 13px;
-
-    font-weight: 650;
-
-    letter-spacing: 0.4px;
-
-    text-transform: uppercase;
-
-}
-
-/* Four metric layout -> now a 2x2 grid to match the inspo */
-
-.weather-details-row .weather-details-grid,
-
-.weather-details-row .weather-metrics-grid,
-
-.weather-details-row .weather-details-list {
+.current-weather-card .weather-details-grid {
 
     display: grid;
 
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 
     align-items: center;
 
-    gap: 18px 10px;
+    gap: 12px;
 
 }
 
-.weather-details-row .weather-metric-card {
+.current-weather-card .weather-metric-card {
 
     min-width: 0;
 
@@ -703,11 +637,11 @@ input {
 
     align-items: center;
 
-    justify-content: flex-start;
+    justify-content: center;
 
-    gap: 12px;
+    gap: 8px;
 
-    padding: 8px;
+    padding: 8px 6px;
 
     background: transparent;
 
@@ -719,9 +653,9 @@ input {
 
 }
 
-.weather-details-row .weather-metric-card h3,
+.current-weather-card .weather-metric-card h3,
 
-.weather-details-row .weather-metric-card p {
+.current-weather-card .weather-metric-card p {
 
     margin: 0;
 
@@ -729,17 +663,17 @@ input {
 
 }
 
-.weather-details-row .weather-metric-card p {
+.current-weather-card .weather-metric-card p {
 
     color: rgba(255, 255, 255, 0.75);
 
-    font-size: 13px;
+    font-size: 12px;
 
 }
 
-.weather-details-row .weather-metric-card h3 {
+.current-weather-card .weather-metric-card h3 {
 
-    font-size: 19px;
+    font-size: 17px;
 
 }
 
@@ -797,9 +731,15 @@ input {
 
     min-width: 0;
 
+    height: 560px;
+
     margin-top: 0;
 
     padding: 18px 18px 14px;
+
+    display: flex;
+
+    flex-direction: column;
 
     border: 1px solid rgba(255, 255, 255, 0.24);
 
@@ -815,15 +755,21 @@ input {
 
     grid-column: 2;
 
-    grid-row: 2 / span 4;
+    grid-row: 4;
 
     width: 100%;
 
     min-width: 0;
 
+    height: 560px;
+
     margin-top: 0;
 
     padding: 18px 18px 12px;
+
+    display: flex;
+
+    flex-direction: column;
 
     border: 1px solid rgba(255, 255, 255, 0.24);
 
@@ -851,33 +797,44 @@ input {
 
 /* Hourly cards container */
 
-.hourly-forecast-list {
-
-    display: flex;
-
-    gap: 6px;
-
-    overflow-x: auto;
-
-    padding: 8px 3px 10px;
-
-    scroll-snap-type: x mandatory;
+.hourly-forecast-list,
+.seven-day-forecast-list {
 
     scrollbar-width: thin;
 
     scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
 
-    min-width: 0;
+}
+
+.hourly-forecast-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    flex: 1;
+
+    min-height: 0;
+
+    gap: 0;
+
+    overflow-x: hidden;
+
+    overflow-y: auto;
+
+    padding: 0 3px;
 
 }
 
-.hourly-forecast-list::-webkit-scrollbar {
+.hourly-forecast-list::-webkit-scrollbar,
+.seven-day-forecast-list::-webkit-scrollbar {
 
-    height: 6px;
+    width: 6px;
 
 }
 
-.hourly-forecast-list::-webkit-scrollbar-thumb {
+.hourly-forecast-list::-webkit-scrollbar-thumb,
+.seven-day-forecast-list::-webkit-scrollbar-thumb {
 
     background: rgba(255, 255, 255, 0.4);
 
@@ -885,57 +842,27 @@ input {
 
 }
 
-.hourly-show-more {
-
-    display: none;
-
-    margin-top: 12px;
-
-    padding: 10px 14px;
-
-    color: #ffffff;
-
-    background: linear-gradient(135deg, rgba(232, 137, 221, 0.85), rgba(166, 121, 227, 0.85));
-
-    border: none;
-
-    border-radius: 999px;
-
-    font-weight: 700;
-
-    cursor: pointer;
-
-    transition: transform 0.2s ease, opacity 0.2s ease;
-
-}
-
-.hourly-show-more:hover {
-
-    transform: translateY(-1px);
-
-    opacity: 0.95;
-
-}
-
-/* Individual hour -- flattened, no per-item card, thin divider instead */
+/* Hourly items use the same compact row treatment as the daily forecast. */
 
 .hourly-forecast-item {
 
-    flex: 0 0 90px;
+    flex: 0 0 auto;
 
-    min-height: 120px;
+    width: 100%;
 
-    display: flex;
+    min-width: 0;
 
-    flex-direction: column;
+    display: grid;
+
+    grid-template-columns: 58px minmax(0, 1fr) 52px 58px;
 
     align-items: center;
 
     justify-content: space-between;
 
-    gap: 10px;
+    gap: 12px;
 
-    padding: 8px 10px;
+    padding: 12px 8px;
 
     color: #ffffff;
 
@@ -943,29 +870,25 @@ input {
 
     border: none;
 
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     border-radius: 0;
 
     cursor: pointer;
 
-    scroll-snap-align: start;
-
-    transition: transform 0.25s ease, opacity 0.25s ease;
+    transition: opacity 0.2s ease;
 
 }
 
 .hourly-forecast-item:last-child {
 
-    border-right: none;
+    border-bottom: none;
 
 }
 
 .hourly-forecast-item:hover {
 
     opacity: 0.8;
-
-    transform: translateY(-2px);
 
 }
 
@@ -983,13 +906,63 @@ input {
 
 .hourly-forecast-item h3 {
 
-    font-size: 23px;
+    font-size: 19px;
+
+}
+
+.hourly-forecast-weather {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+.hourly-forecast-weather p {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    text-align: left;
+
+    white-space: nowrap;
+
+    font-size: 13px;
+
+}
+
+.hourly-forecast-temperature {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+}
+
+.hourly-forecast-time {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-start;
 
 }
 
 .hourly-forecast-item small {
 
     color: rgba(255, 255, 255, 0.9);
+
+    text-align: right;
+
+    white-space: nowrap;
 
 }
 
@@ -1032,6 +1005,10 @@ input {
     gap: 0;
 
     width: 100%;
+
+    flex: 1;
+
+    min-height: 0;
 
 }
 
@@ -1205,7 +1182,7 @@ input {
 
     width: 100%;
 
-    max-width: 1320px;
+    max-width: 1000px;
 
     margin: 12px auto;
 
@@ -1280,14 +1257,6 @@ input {
         grid-column: 1;
 
         grid-row: 5;
-
-    }
-
-    .weather-details-row {
-
-        grid-column: 1;
-
-        grid-row: auto;
 
     }
 
@@ -1382,34 +1351,6 @@ input {
 
     }
 
-    .weather-details-row {
-
-        border-radius: 19px;
-
-    }
-
-    .weather-details-row > * {
-
-        padding: 12px !important;
-
-    }
-
-    .weather-details-row .weather-details-grid,
-
-    .weather-details-row .weather-metrics-grid,
-
-    .weather-details-row .weather-details-list {
-
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    }
-
-    .weather-details-row .weather-metric-card {
-
-        padding: 10px 5px;
-
-    }
-
     .hourly-forecast,
 
     .seven-day-forecast {
@@ -1437,12 +1378,6 @@ input {
         overflow: visible;
 
         gap: 0;
-
-    }
-
-    .hourly-show-more {
-
-        display: inline-flex;
 
     }
 
@@ -1477,6 +1412,12 @@ input {
     .hourly-forecast-item:last-child {
 
         border-bottom: none;
+
+    }
+
+    .hourly-forecast-item.selected-hour {
+
+        border-radius: 14px;
 
     }
 
@@ -1614,9 +1555,9 @@ input {
     height: 42px;
     padding: 0 10px;
     box-sizing: border-box;
-    border: 2px solid #26344b;
+    border: 1px solid #a5a5a5;
     border-radius: 46px;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(45, 44, 44, 0.25);
     cursor: pointer;
     transition: 0.25s ease;
 }
@@ -1629,7 +1570,7 @@ input {
     left: 2px;
     top: 2px;
     z-index: 2;
-    border: 2px solid #26344b;
+   ;
     border-radius: 50%;
     background: #ffffff;
     box-sizing: border-box;
@@ -1639,7 +1580,7 @@ input {
 .toggle input:checked + label::after {
     left: 44px;
     background: #26344b;
-    border-color: #26344b;
+    border-color: #8a8c90;
 }
 
 .toggle-sun,
@@ -1656,6 +1597,11 @@ input {
 
 .toggle-moon {
     color: #7dd3fc;
+}
+
+.toggle.light .toggle-sun,
+.toggle.dark .toggle-moon {
+    z-index: 3;
 }
 
 .toggle input:checked + label .toggle-sun {
@@ -1705,11 +1651,11 @@ input {
 }
 
 .App.light-theme::before {
-    background: rgba(244, 244, 244, 0.35);
+    background: rgba(244, 244, 244, 0.03);
 }
 
 .App.dark-theme::before {
-    background: rgba(10, 17, 32, 0.58);
+    background: rgba(10, 17, 32, 0.7);
 }
 
 /* ==========================================
@@ -1776,7 +1722,7 @@ input {
 
     justify-content: space-between;
 
-    gap: 25px;
+    gap: 18px;
 
     width: 100%;
 
@@ -1806,7 +1752,7 @@ input {
 
     color: #ffffff;
 
-    font-size: clamp(48px, 6vw, 76px);
+    font-size: clamp(42px, 5vw, 64px);
 
     font-weight: 750;
 
@@ -1822,7 +1768,7 @@ input {
 
     color: rgba(255, 255, 255, 0.9);
 
-    font-size: 17px;
+    font-size: 15px;
 
 }
 
@@ -1830,7 +1776,7 @@ input {
 
     color: rgba(255, 255, 255, 0.85);
 
-    font-size: 15px;
+    font-size: 14px;
 
 }
 
@@ -1864,9 +1810,9 @@ input {
 
     color: rgba(255, 255, 255, 0.75);
 
-    font-size: 14px;
+    font-size: 18px;
 
-    line-height: 1.5;
+    line-height: 1.4;
 
 }
 
@@ -1990,15 +1936,10 @@ input {
 
 }
 
-/* Single source of truth for the glass cards' background color.
-   Change the rgba() below to recolor the current-weather card,
-   weather-details row, hourly-forecast and seven-day-forecast cards
-   in BOTH themes. */
+/* Single source of truth for the glass cards' background color. */
 
 .light-theme .current-weather-card,
 .dark-theme .current-weather-card,
-.light-theme .weather-details-row,
-.dark-theme .weather-details-row,
 .light-theme .hourly-forecast,
 .dark-theme .hourly-forecast,
 .light-theme .seven-day-forecast,
@@ -2024,10 +1965,10 @@ input {
 .dark-theme .hourly-forecast h2,
 .light-theme .seven-day-forecast h2,
 .dark-theme .seven-day-forecast h2,
-.light-theme .weather-details-row .weather-metric-card h3,
-.dark-theme .weather-details-row .weather-metric-card h3,
-.light-theme .weather-details-row .weather-metric-card p,
-.dark-theme .weather-details-row .weather-metric-card p {
+.light-theme .current-weather-card .weather-metric-card h3,
+.dark-theme .current-weather-card .weather-metric-card h3,
+.light-theme .current-weather-card .weather-metric-card p,
+.dark-theme .current-weather-card .weather-metric-card p {
 
     color: #ffffff;
 
@@ -2127,6 +2068,247 @@ input {
     .main-weather-temperature h1 {
 
         font-size: 46px;
+
+    }
+
+}
+
+/* WEATHER DASHBOARD LAYOUT */
+
+.main-weather-overview {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    align-items: center;
+
+    gap: 22px;
+
+    width: 100%;
+
+    min-width: 0;
+
+}
+
+.main-weather-info {
+
+    align-items: center;
+
+}
+
+.main-weather-recommendation {
+
+    min-height: 80px;
+
+    margin: 0;
+
+    padding-left: 20px;
+
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+
+}
+
+.current-weather-card .weather-details-grid {
+
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+    padding-top: 10px;
+
+}
+
+.seven-day-forecast-list {
+
+    overflow-y: auto;
+
+}
+
+@media (max-width: 980px) {
+
+    .current-weather-section,
+    .hourly-forecast,
+    .seven-day-forecast {
+
+        width: 100%;
+
+    }
+
+    .current-weather-section {
+
+        order: 1;
+
+    }
+
+    .hourly-forecast {
+
+        order: 2;
+
+    }
+
+    .seven-day-forecast {
+
+        order: 3;
+
+    }
+
+    .main-weather-overview {
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 18px;
+
+    }
+
+    .main-weather-info {
+
+        justify-content: center;
+
+    }
+
+    .main-weather-recommendation {
+
+        min-height: 0;
+
+        padding: 14px 0 0;
+
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+
+        border-left: none;
+
+    }
+
+    .current-weather-card .weather-details-grid {
+
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    }
+
+    .hourly-forecast,
+    .seven-day-forecast {
+
+        height: auto;
+
+    }
+
+    .hourly-forecast-list {
+
+        flex: 0 0 auto;
+
+        max-height: 240px;
+
+        overflow-x: hidden;
+
+        overflow-y: auto;
+
+    }
+
+    .seven-day-forecast-list {
+
+        flex: 0 0 auto;
+
+        overflow: visible;
+
+    }
+
+    .hourly-forecast-item {
+
+        flex: 0 0 auto;
+
+        display: grid;
+
+        grid-template-columns: 58px minmax(0, 1fr) 52px 58px;
+
+        min-height: 58px;
+
+        padding: 12px 8px;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+
+    }
+
+    .hourly-forecast-item:last-child {
+
+        border-bottom: none;
+
+    }
+
+    .hourly-forecast-item small {
+
+        margin-left: 0;
+
+    }
+
+}
+
+@media (max-width: 520px) {
+
+    .current-weather-card {
+
+        min-height: 0;
+
+        gap: 16px;
+
+        padding: 18px 14px 14px;
+
+    }
+
+    .current-weather-card .weather-details-grid {
+
+        gap: 8px 4px;
+
+    }
+
+    .current-weather-card .weather-metric-card {
+
+        justify-content: flex-start;
+
+        gap: 8px;
+
+        padding: 10px 4px;
+
+    }
+
+    .current-weather-card .weather-metric-card .metric-icon {
+
+        width: 22px;
+
+        height: 22px;
+
+    }
+
+    .hourly-forecast-item {
+
+        grid-template-columns: 48px minmax(0, 1fr) 42px 50px;
+
+        gap: 6px;
+
+        padding-right: 4px;
+
+        padding-left: 4px;
+
+    }
+
+    .hourly-forecast-weather {
+
+        gap: 6px;
+
+    }
+
+    .hourly-forecast-weather p {
+
+        text-align: left;
+
+    }
+
+    .hourly-forecast-weather svg {
+
+        width: 26px;
+
+        height: 26px;
 
     }
 

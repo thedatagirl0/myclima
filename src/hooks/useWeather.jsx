@@ -1,30 +1,41 @@
 
 import { useEffect, useState } from "react";
-import { getCurrentWeather } from "../services/weatherService";
+import {
+  getCachedWeather,
+  getCurrentWeather,
+} from "../services/weatherService";
 
 function useWeather(coordinates) {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const latitude = coordinates?.latitude;
+  const longitude = coordinates?.longitude;
 
   useEffect(() => {
     // Don't request weather without coordinates
-    if (!coordinates) {
+    if (latitude === undefined || longitude === undefined) {
       setWeatherData(null);
+      setLoading(false);
+      setError(null);
       return;
     }
 
     let isMounted = true;
+    const controller = new AbortController();
+    const cachedData = getCachedWeather(latitude, longitude);
+
+    setWeatherData(cachedData);
+    setLoading(!cachedData);
+    setError(null);
 
     const fetchWeather = async () => {
-      setLoading(true);
-      setError(null);
-
       try {
         // Retrieve weather using the user's coordinates
         const data = await getCurrentWeather(
-          coordinates.latitude,
-          coordinates.longitude
+          latitude,
+          longitude,
+          controller.signal
         );
 
         if (isMounted) {
@@ -32,12 +43,12 @@ function useWeather(coordinates) {
         }
 
       } catch (err) {
-        if (isMounted) {
+        if (isMounted && !controller.signal.aborted) {
           setError(err.message);
         }
 
       } finally {
-        if (isMounted) {
+        if (isMounted && !controller.signal.aborted) {
           setLoading(false);
         }
       }
@@ -47,9 +58,10 @@ function useWeather(coordinates) {
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
 
-  }, [coordinates?.latitude, coordinates?.longitude]);
+  }, [latitude, longitude]);
 
   return {
     weatherData,

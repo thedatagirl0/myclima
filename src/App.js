@@ -12,14 +12,16 @@ import AppHeader from "./Components/layout/AppHeader";
 import LocationHeader from "./Components/weather/LocationHeader";
 import MainWeatherCard from "./Components/weather/MainWeatherCard";
 
-import WeatherDetails from "./Components/weather/WeatherDetails";
 import HourlyForecast from "./Components/weather/HourlyForecast";
 import SevenDayForecast from "./Components/weather/SevenDayForecast";
 
 import LoadingState from "./Components/ui/LoadingState";
 import ErrorMessage from "./Components/ui/ErrorMessage";
 
-import { getCityBackground } from "./services/cityImageService";
+import {
+    getCachedCityBackground,
+    getCityBackground,
+} from "./services/cityImageService";
 
 import "./App.css";
 
@@ -103,20 +105,28 @@ function App() {
     // Load background whenever the city changes
     useEffect(() => {
         let isActive = true;
+        const controller = new AbortController();
 
         const loadBackground = async () => {
-            setCityBackground({
-                imageUrl: null,
-                attribution: null,
-                sourceUrl: null,
-                licenseUrl: null,
-            });
-
             if (!backgroundCity) {
+                setCityBackground({
+                    imageUrl: null,
+                    attribution: null,
+                    sourceUrl: null,
+                    licenseUrl: null,
+                });
                 return;
             }
 
-            const result = await getCityBackground(backgroundCity);
+            const cachedBackground = getCachedCityBackground(backgroundCity);
+            if (cachedBackground) {
+                setCityBackground(cachedBackground);
+            }
+
+            const result = await getCityBackground(
+                backgroundCity,
+                controller.signal
+            );
 
             if (isActive && result) {
                 setCityBackground(result);
@@ -127,6 +137,7 @@ function App() {
 
         return () => {
             isActive = false;
+            controller.abort();
         };
     }, [backgroundCity]);
 
@@ -300,12 +311,6 @@ function App() {
                             weatherInfo={weatherInfo}
                             recommendation={recommendation}
                         />
-
-                        {/* WEATHER DETAILS */}
-                        <div className="weather-details-row">
-                            <WeatherDetails weather={displayedWeather} />
-                        </div>
-
                     </section>
                 )}
 

@@ -3,6 +3,10 @@ import axios from "axios";
 
 // Open-Meteo Weather API endpoint
 const WEATHER_API_URL = "https://api.open-meteo.com/v1/forecast";
+const WEATHER_CACHE_KEY = "smart-weather-cache";
+const WEATHER_CACHE_DURATION = 10 * 60 * 1000;
+const MAX_CACHED_LOCATIONS = 8;
+const memoryCache = new Map();
 
 // Current weather variables
 const currentVariables = [
@@ -41,10 +45,72 @@ const dailyVariables = [
     "precipitation_probability_max",
 ];
 
+const getLocationKey = (latitude, longitude) =>
+    `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+
+// Return recently fetched data so the app can render it before revalidating.
+export const getCachedWeather = (latitude, longitude) => {
+    const key = getLocationKey(latitude, longitude);
+    const cached = memoryCache.get(key);
+
+    if (cached && Date.now() - cached.savedAt < WEATHER_CACHE_DURATION) {
+        return cached.data;
+    }
+
+    try {
+        const storedCache = JSON.parse(
+            localStorage.getItem(WEATHER_CACHE_KEY) || "{}"
+        );
+        const stored = storedCache[key];
+
+        if (
+            stored?.data &&
+            Date.now() - stored.savedAt < WEATHER_CACHE_DURATION
+        ) {
+            memoryCache.set(key, stored);
+            return stored.data;
+        }
+    } catch (error) {
+        console.warn("Unable to read cached weather data:", error);
+    }
+
+    return null;
+};
+
+const cacheWeather = (latitude, longitude, data) => {
+    const key = getLocationKey(latitude, longitude);
+    const cached = { savedAt: Date.now(), data };
+
+    memoryCache.set(key, cached);
+    if (memoryCache.size > MAX_CACHED_LOCATIONS) {
+        const oldestKey = memoryCache.keys().next().value;
+        memoryCache.delete(oldestKey);
+    }
+
+    try {
+        const storedCache = JSON.parse(
+            localStorage.getItem(WEATHER_CACHE_KEY) || "{}"
+        );
+        storedCache[key] = cached;
+
+        const recentEntries = Object.entries(storedCache)
+            .sort((first, second) => second[1].savedAt - first[1].savedAt)
+            .slice(0, MAX_CACHED_LOCATIONS);
+
+        localStorage.setItem(
+            WEATHER_CACHE_KEY,
+            JSON.stringify(Object.fromEntries(recentEntries))
+        );
+    } catch (error) {
+        console.warn("Unable to save cached weather data:", error);
+    }
+};
+
 // Retrieve current weather, hourly forecast and daily forecast
-export const getCurrentWeather = async (latitude, longitude) => {
+export const getCurrentWeather = async (latitude, longitude, signal) => {
     try {
         const response = await axios.get(WEATHER_API_URL, {
+            signal,
             params: {
                 latitude,
                 longitude,
@@ -66,10 +132,16 @@ export const getCurrentWeather = async (latitude, longitude) => {
             },
         });
 
+        cacheWeather(latitude, longitude, response.data);
+
         // Return the complete API response
         return response.data;
 
     } catch (error) {
+        if (axios.isCancel(error) || signal?.aborted) {
+            throw error;
+        }
+
         console.error("Weather API Error:", error);
 
         throw new Error(
