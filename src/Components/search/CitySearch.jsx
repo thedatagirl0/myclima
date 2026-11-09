@@ -1,5 +1,6 @@
 ﻿import React, { useState } from "react";
 import axios from "axios";
+import { getCityBackground } from "../../services/cityImageService";
 
 const GEOCODING_API_URL =
     "https://geocoding-api.open-meteo.com/v1/search";
@@ -469,6 +470,10 @@ function CitySearch({ onCitySelect }) {
             );
 
             setSearchResults(rankedResults);
+
+            if (rankedResults[0]) {
+                getCityBackground(rankedResults[0].name);
+            }
 
             if (!hasExactMatch || usedFallback) {
                 setError("No exact match found. Showing the closest city matches.");

@@ -121,6 +121,7 @@ function App() {
             const cachedBackground = getCachedCityBackground(backgroundCity);
             if (cachedBackground) {
                 setCityBackground(cachedBackground);
+                return;
             }
 
             const result = await getCityBackground(

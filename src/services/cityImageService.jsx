@@ -7,6 +7,7 @@ const COMMONS_API_URL = "https://commons.wikimedia.org/w/api.php";
 const CITY_IMAGE_CACHE_KEY = "smart-weather-city-images";
 const CITY_IMAGE_CACHE_LIMIT = 20;
 const memoryCache = new Map();
+const inFlightRequests = new Map();
 
 // Default fallback image
 const getDefaultImage = () => ({
@@ -114,8 +115,7 @@ const getImageRelevanceScore = (image, normalizedCityName) => {
     );
 };
 
-// Retrieve a background image for a city
-export const getCityBackground = async (cityName, signal) => {
+const fetchCityBackground = async (cityName, signal) => {
     if (!cityName || !cityName.trim()) {
         return getDefaultImage();
     }
@@ -236,4 +236,32 @@ export const getCityBackground = async (cityName, signal) => {
         console.error("City Image API Error:", error);
         return getDefaultImage();
     }
+};
+
+// Reuse cached and in-flight lookups so selecting a search result does not
+// start another request if its image was already warmed from the result list.
+export const getCityBackground = (cityName, signal) => {
+    if (!cityName || !cityName.trim()) {
+        return Promise.resolve(getDefaultImage());
+    }
+
+    const key = getCityCacheKey(cityName);
+    const cachedBackground = getCachedCityBackground(cityName);
+    if (cachedBackground) {
+        return Promise.resolve(cachedBackground);
+    }
+
+    const pendingRequest = inFlightRequests.get(key);
+    if (pendingRequest) {
+        return pendingRequest;
+    }
+
+    const request = fetchCityBackground(cityName, signal).finally(() => {
+        if (inFlightRequests.get(key) === request) {
+            inFlightRequests.delete(key);
+        }
+    });
+
+    inFlightRequests.set(key, request);
+    return request;
 };

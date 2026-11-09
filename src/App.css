@@ -461,7 +461,7 @@ input {
 
 .current-weather-card {
 
-    min-height: 250px;
+    min-height: 215px;
 
     width: 100%;
 
@@ -469,9 +469,9 @@ input {
 
     flex-direction: column;
 
-    gap: 18px;
+    gap: 14px;
 
-    padding: 20px 24px 16px;
+    padding: 16px 20px 12px;
 
     border: 1px solid rgba(255, 255, 255, 0.27);
 
@@ -731,11 +731,11 @@ input {
 
     min-width: 0;
 
-    height: 560px;
+    height: 490px;
 
     margin-top: 0;
 
-    padding: 18px 18px 14px;
+    padding: 14px 14px 10px;
 
     display: flex;
 
@@ -761,11 +761,11 @@ input {
 
     min-width: 0;
 
-    height: 560px;
+    height: 490px;
 
     margin-top: 0;
 
-    padding: 18px 18px 12px;
+    padding: 14px 14px 8px;
 
     display: flex;
 
@@ -1335,11 +1335,11 @@ input {
 
         align-items: stretch;
 
-        gap: 20px;
+        gap: 16px;
 
-        padding: 23px 15px;
+        padding: 18px 13px;
 
-        border-radius: 22px;
+        border-radius: 20px;
 
     }
 
@@ -1352,12 +1352,11 @@ input {
     }
 
     .hourly-forecast,
-
     .seven-day-forecast {
 
-        padding: 17px 12px;
+        padding: 14px 10px;
 
-        border-radius: 21px;
+        border-radius: 19px;
 
     }
 
@@ -1651,11 +1650,11 @@ input {
 }
 
 .App.light-theme::before {
-    background: rgba(244, 244, 244, 0.03);
+    background: rgba(147, 143, 143, 0.03);
 }
 
 .App.dark-theme::before {
-    background: rgba(10, 17, 32, 0.7);
+    background: rgba(25, 25, 39, 0.7);
 }
 
 /* ==========================================
@@ -1945,7 +1944,7 @@ input {
 .light-theme .seven-day-forecast,
 .dark-theme .seven-day-forecast {
 
-    background: rgba(3, 3, 11, 0.43);
+    background: rgba(69, 69, 69, 0.43);
     border-color: rgba(255, 255, 255, 0.27);
     box-shadow: 0 10px 35px rgba(22, 20, 65, 0.2);
 
@@ -2250,9 +2249,9 @@ input {
 
         min-height: 0;
 
-        gap: 16px;
+        gap: 14px;
 
-        padding: 18px 14px 14px;
+        padding: 16px 12px 12px;
 
     }
 
