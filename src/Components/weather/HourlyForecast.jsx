@@ -1,129 +1,191 @@
-
-import React from "react";
-
+import React, { useEffect, useMemo, useState } from "react";
 import HourlyForecastItem from "./HourlyForecastItem";
 import formatWeather from "../../utils/formatWeather";
 
-function HourlyForecast({ hourly, currentWeather }) {
+const HOURS_PER_BATCH = 6;
 
-  // Check if hourly and current weather data exist
-  if (
-    !hourly ||
-    !hourly.time ||
-    !currentWeather ||
-    !currentWeather.time
-  ) {
-    return null;
-  }
+function HourlyForecast({
+    hourly,
+    currentWeather,
+    selectedDate,
+    selectedTime,
+    onHourSelect,
+}) {
+    const [visibleCount, setVisibleCount] = useState(HOURS_PER_BATCH);
+    const [isCompactLayout, setIsCompactLayout] = useState(
+        () => (typeof window !== "undefined" ? window.innerWidth <= 980 : false)
+    );
 
-  // Get the date of the current weather
-  const currentDate = currentWeather.time.slice(0, 10);
+    useEffect(() => {
+        const handleResize = () => {
+            setIsCompactLayout(window.innerWidth <= 980);
+        };
 
-  // Get the current weather timestamp
-  const currentTimestamp = currentWeather.time;
+        handleResize();
+        window.addEventListener("resize", handleResize);
 
-  // Format hourly time
-  const formatHour = (time) => {
-    const hour = Number(time.slice(11, 13));
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
-    const period = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 || 12;
+    useEffect(() => {
+        setVisibleCount(HOURS_PER_BATCH);
+    }, [selectedDate, currentWeather?.time]);
 
-    const formattedTime = `${displayHour} ${period}`;
+    const hasData = Boolean(hourly && hourly.time && currentWeather);
+    const currentDate = currentWeather?.time?.slice(0, 10) || null;
+    const isToday = selectedDate === currentDate;
 
-    // Include the weekday when the forecast crosses into another day
-    const forecastDate = time.slice(0, 10);
+    const formatHour = (time) => {
+        const hour = Number(time.slice(11, 13));
+        const period = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12;
 
-    if (forecastDate !== currentDate) {
-      const dayName = new Date(
-        `${forecastDate}T12:00:00Z`
-      ).toLocaleDateString("en-US", {
-        weekday: "short",
-        timeZone: "UTC",
-      });
+        return `${displayHour} ${period}`;
+    };
 
-      return `${dayName} ${formattedTime}`;
+    const hourlyItems = useMemo(() => {
+        if (!hasData || !hourly || !currentWeather) {
+            return [];
+        }
+
+        return hourly.time
+            .map((time, index) => ({
+                time,
+                temperature_2m: hourly.temperature_2m?.[index],
+                relative_humidity_2m: hourly.relative_humidity_2m?.[index],
+                apparent_temperature: hourly.apparent_temperature?.[index],
+                precipitation_probability: hourly.precipitation_probability?.[index],
+                weather_code: hourly.weather_code?.[index],
+                is_day: hourly.is_day?.[index],
+                wind_speed_10m: hourly.wind_speed_10m?.[index],
+                uv_index: hourly.uv_index?.[index],
+                visibility: hourly.visibility?.[index],
+                surface_pressure: hourly.surface_pressure?.[index],
+            }))
+            .filter((hour) => {
+                if (isToday) {
+                    return hour.time > currentWeather.time;
+                }
+
+                return hour.time.slice(0, 10) === selectedDate;
+            });
+    }, [currentWeather, hasData, hourly, isToday, selectedDate]);
+
+    if (!hasData) {
+        return null;
     }
 
-    return formattedTime;
-  };
+    const totalVisibleHours = isToday ? hourlyItems.length + 1 : hourlyItems.length;
 
-  // Convert hourly API arrays into individual forecast objects
-  const hourlyItems = hourly.time
+    const visibleEntries = [];
 
-    .map((time, index) => ({
-      time,
-      temperature: hourly.temperature_2m?.[index],
-      humidity: hourly.relative_humidity_2m?.[index],
-      feelsLike: hourly.apparent_temperature?.[index],
-      precipitationProbability:
-        hourly.precipitation_probability?.[index],
-      weatherCode: hourly.weather_code?.[index],
-      isDay: hourly.is_day?.[index],
-      windSpeed: hourly.wind_speed_10m?.[index],
-      uvIndex: hourly.uv_index?.[index],
-      visibility: hourly.visibility?.[index],
-      pressure: hourly.surface_pressure?.[index],
-    }))
+    if (isCompactLayout) {
+        const maxVisible = Math.min(totalVisibleHours, visibleCount);
 
-    // Keep all upcoming hours, including hours after midnight
-    .filter((hour) => hour.time > currentTimestamp)
+        if (isToday) {
+            visibleEntries.push(
+                <HourlyForecastItem
+                    key="now"
+                    time="Now"
+                    temperature={currentWeather.temperature_2m}
+                    weatherInfo={formatWeather(
+                        currentWeather.weather_code,
+                        currentWeather.is_day
+                    )}
+                    precipitationProbability={null}
+                    isCurrent={true}
+                    isSelected={!selectedTime}
+                    onClick={() => onHourSelect(null)}
+                />
+            );
+        }
 
-    // Display the next 23 forecast hours
-    .slice(0, 23);
+        const compactVisibleCount = Math.max(0, maxVisible - (isToday ? 1 : 0));
+        const upcomingHours = hourlyItems.slice(0, compactVisibleCount);
 
-  // Create the current weather card
-  const currentHour = {
-    time: "Now",
-    temperature: currentWeather.temperature_2m,
-    weatherInfo: formatWeather(
-      currentWeather.weather_code,
-      currentWeather.is_day
-    ),
-    precipitationProbability:
-      currentWeather.precipitation_probability ?? null,
-    isCurrent: true,
-  };
+        upcomingHours.forEach((hour) => {
+            visibleEntries.push(
+                <HourlyForecastItem
+                    key={hour.time}
+                    time={formatHour(hour.time)}
+                    temperature={hour.temperature_2m}
+                    weatherInfo={formatWeather(hour.weather_code, hour.is_day)}
+                    precipitationProbability={hour.precipitation_probability}
+                    isSelected={selectedTime === hour.time}
+                    onClick={() => onHourSelect(hour)}
+                />
+            );
+        });
 
-  return (
-    <section className="hourly-forecast">
+        const hasMore = totalVisibleHours > maxVisible;
 
-      <h2>Hourly Forecast</h2>
+        return (
+            <section className="hourly-forecast">
+                <h2>{isToday ? "Next 24 Hours" : "Hourly Forecast"}</h2>
 
-      <div className="hourly-forecast-list">
+                <div className="hourly-forecast-list">
+                    {visibleEntries}
+                </div>
 
-        {/* Current weather card */}
-        <HourlyForecastItem
-          key="now"
-          {...currentHour}
-        />
+                {(hasMore || visibleCount > HOURS_PER_BATCH) && (
+                    <button
+                        type="button"
+                        className="hourly-show-more"
+                        onClick={() => {
+                            if (hasMore) {
+                                setVisibleCount((count) => count + HOURS_PER_BATCH);
+                                return;
+                            }
 
-        {/* Next 23 hourly forecast cards */}
-        {hourlyItems.map((hour) => {
+                            setVisibleCount(HOURS_PER_BATCH);
+                        }}
+                    >
+                        {hasMore ? "Show more" : "Show less"}
+                    </button>
+                )}
+            </section>
+        );
+    }
 
-          const weatherInfo = formatWeather(
-            hour.weatherCode,
-            hour.isDay
-          );
+    const displayedHours = isToday
+        ? hourlyItems.slice(0, 23)
+        : hourlyItems.slice(0, 24);
 
-          return (
-            <HourlyForecastItem
-              key={hour.time}
-              time={formatHour(hour.time)}
-              temperature={hour.temperature}
-              weatherInfo={weatherInfo}
-              precipitationProbability={
-                hour.precipitationProbability
-              }
-              isCurrent={false}
-            />
-          );
-        })}
+    return (
+        <section className="hourly-forecast">
+            <h2>{isToday ? "Next 24 Hours" : "Hourly Forecast"}</h2>
 
-      </div>
+            <div className="hourly-forecast-list">
+                {isToday && (
+                    <HourlyForecastItem
+                        key="now"
+                        time="Now"
+                        temperature={currentWeather.temperature_2m}
+                        weatherInfo={formatWeather(
+                            currentWeather.weather_code,
+                            currentWeather.is_day
+                        )}
+                        precipitationProbability={null}
+                        isCurrent={true}
+                        isSelected={!selectedTime}
+                        onClick={() => onHourSelect(null)}
+                    />
+                )}
 
-    </section>
-  );
+                {displayedHours.map((hour) => (
+                    <HourlyForecastItem
+                        key={hour.time}
+                        time={formatHour(hour.time)}
+                        temperature={hour.temperature_2m}
+                        weatherInfo={formatWeather(hour.weather_code, hour.is_day)}
+                        precipitationProbability={hour.precipitation_probability}
+                        isSelected={selectedTime === hour.time}
+                        onClick={() => onHourSelect(hour)}
+                    />
+                ))}
+            </div>
+        </section>
+    );
 }
 
 export default HourlyForecast;

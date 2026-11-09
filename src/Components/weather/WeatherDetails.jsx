@@ -11,7 +11,6 @@ import {
 import WeatherMetricCard from "./WeatherMetricCard";
 
 function WeatherDetails({ weather }) {
-    // Don't display the component if weather data is unavailable
     if (!weather) {
         return null;
     }
@@ -23,7 +22,7 @@ function WeatherDetails({ weather }) {
             : null;
 
     return (
-        <div className="weather-details">
+        <div className="weather-details-grid">
 
             <WeatherMetricCard
                 title="Humidity"
@@ -33,7 +32,7 @@ function WeatherDetails({ weather }) {
             />
 
             <WeatherMetricCard
-                title="Wind Speed"
+                title="Wind"
                 value={weather.wind_speed_10m}
                 unit="km/h"
                 icon={Wind}

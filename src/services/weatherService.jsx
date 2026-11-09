@@ -30,7 +30,18 @@ const hourlyVariables = [
     "surface_pressure",
 ];
 
-// Retrieve current weather and hourly forecast
+// Daily forecast variables
+const dailyVariables = [
+    "weather_code",
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "sunrise",
+    "sunset",
+    "uv_index_max",
+    "precipitation_probability_max",
+];
+
+// Retrieve current weather, hourly forecast and daily forecast
 export const getCurrentWeather = async (latitude, longitude) => {
     try {
         const response = await axios.get(WEATHER_API_URL, {
@@ -44,6 +55,10 @@ export const getCurrentWeather = async (latitude, longitude) => {
                 // Seven-day hourly forecast
                 hourly: hourlyVariables.join(","),
 
+                // Seven-day daily forecast
+                daily: dailyVariables.join(","),
+
+                // Number of forecast days
                 forecast_days: 7,
 
                 // Automatically detect the selected location's timezone

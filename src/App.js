@@ -1,209 +1,370 @@
 
 import React, { useEffect, useState } from "react";
+
 import useGeolocation from "./hooks/useGeolocation";
 import useWeather from "./hooks/useWeather";
+import useTheme from "./hooks/useTheme";
+
 import formatWeather from "./utils/formatWeather";
-import WeatherIcon from "./Components/weather/WeatherIcon";
 import getRecommendation from "./utils/getRecommendation";
-import WeatherRecommendation from "./Components/weather/WeatherRecommendation";
+
+import AppHeader from "./Components/layout/AppHeader";
+import LocationHeader from "./Components/weather/LocationHeader";
+import MainWeatherCard from "./Components/weather/MainWeatherCard";
+
 import WeatherDetails from "./Components/weather/WeatherDetails";
 import HourlyForecast from "./Components/weather/HourlyForecast";
+import SevenDayForecast from "./Components/weather/SevenDayForecast";
+
+import LoadingState from "./Components/ui/LoadingState";
+import ErrorMessage from "./Components/ui/ErrorMessage";
+
+import { getCityBackground } from "./services/cityImageService";
 
 import "./App.css";
 
 function App() {
-  // Get user's location
-  const {
-    coordinates,
-    city,
-    country,
-    locality,
-    loading: locationLoading,
-    error: locationError,
-    geocodingError,
-  } = useGeolocation();
+    // Theme management
+    const { theme, toggleTheme } = useTheme();
 
-  // Get weather information
-  const {
-    weatherData,
-    loading: weatherLoading,
-    error: weatherError,
-  } = useWeather(coordinates);
+    // Get user's original location
+    const {
+        coordinates,
+        city,
+        country,
+        loading: locationLoading,
+        error: locationError,
+        geocodingError,
+    } = useGeolocation();
 
-  // Manage the live clock
-  const [clockNow, setClockNow] = useState(Date.now());
+    // Store manually selected city and restore it after refresh.
+    const [selectedLocation, setSelectedLocation] = useState(() => {
+        if (typeof window === "undefined") {
+            return null;
+        }
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setClockNow(Date.now());
-    }, 60000);
+        try {
+            const savedLocation = localStorage.getItem("weather-selected-location");
+            return savedLocation ? JSON.parse(savedLocation) : null;
+        } catch (error) {
+            return null;
+        }
+    });
 
-    return () => clearInterval(timer);
-  }, []);
+    useEffect(() => {
+        if (selectedLocation) {
+            localStorage.setItem(
+                "weather-selected-location",
+                JSON.stringify(selectedLocation)
+            );
+            return;
+        }
 
-  // Extract current weather and timezone
-  const currentWeather = weatherData?.current;
-  const timezone = weatherData?.timezone;
+        localStorage.removeItem("weather-selected-location");
+    }, [selectedLocation]);
 
-  // Format the selected city's local date and time
-  const localDateTime = timezone
-    ? new Intl.DateTimeFormat("en-GB", {
-      timeZone: timezone,
-      dateStyle: "full",
-      timeStyle: "short",
-    }).format(new Date(clockNow))
-    : null;
+    // Use selected city coordinates or original device coordinates
+    const weatherCoordinates = selectedLocation
+        ? {
+            latitude: selectedLocation.latitude,
+            longitude: selectedLocation.longitude,
+        }
+        : coordinates;
 
-  // Interpret the numerical weather code
-  const weatherInfo = currentWeather
-    ? formatWeather(
-      currentWeather.weather_code,
-      currentWeather.is_day
-    )
-    : null;
+    // Get weather information
+    const {
+        weatherData,
+        loading: weatherLoading,
+        error: weatherError,
+    } = useWeather(weatherCoordinates);
 
-  // Generate a recommendation based on current weather
-  const recommendation = currentWeather
-    ? getRecommendation({
-      weatherCode: currentWeather.weather_code,
-      temperature: currentWeather.temperature_2m,
-      windSpeed: currentWeather.wind_speed_10m,
-      isDay: currentWeather.is_day,
-    })
-    : null;
-  return (
-    <div className="App">
-      <main className="location-card">
+    // Track selected day and hour
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedHour, setSelectedHour] = useState(null);
 
-        <h1>🌦️ Smart Weather App</h1>
-        <p>Discover the weather around you!</p>
+    // Manage live clock
+    const [clockNow, setClockNow] = useState(Date.now());
 
-        {/* LOCATION LOADING */}
-        {locationLoading && (
-          <p className="loading">
-            Detecting your location...
-          </p>
-        )}
+    // Store city background information
+    const [cityBackground, setCityBackground] = useState({
+        imageUrl: null,
+        attribution: null,
+        sourceUrl: null,
+        licenseUrl: null,
+    });
 
-        {/* LOCATION ERROR */}
-        {locationError && (
-          <p className="error">
-            {locationError}
-          </p>
-        )}
+    // Determine displayed location
+    const displayCity = selectedLocation?.name || city;
+    const displayCountry = selectedLocation?.country || country;
 
-        {/* LOCATION INFORMATION */}
-        {coordinates && (
-          <div className="location-info">
+    // City background
+    const backgroundCity = displayCity;
 
-            <h2>📍 Your Location</h2>
+    // Load background whenever the city changes
+    useEffect(() => {
+        let isActive = true;
 
-            <h3>
-              {city || "Identifying city..."}
-              {country && `, ${country}`}
-            </h3>
+        const loadBackground = async () => {
+            setCityBackground({
+                imageUrl: null,
+                attribution: null,
+                sourceUrl: null,
+                licenseUrl: null,
+            });
 
-            {locality && (
-              <p>
-                <strong>Locality:</strong> {locality}
-              </p>
-            )}
+            if (!backgroundCity) {
+                return;
+            }
 
-            {geocodingError && (
-              <p className="error">
-                {geocodingError}
-              </p>
-            )}
+            const result = await getCityBackground(backgroundCity);
 
-            <hr />
+            if (isActive && result) {
+                setCityBackground(result);
+            }
+        };
 
-            <p>
-              <strong>Latitude:</strong>{" "}
-              {coordinates.latitude.toFixed(4)}
-            </p>
+        loadBackground();
 
-            <p>
-              <strong>Longitude:</strong>{" "}
-              {coordinates.longitude.toFixed(4)}
-            </p>
+        return () => {
+            isActive = false;
+        };
+    }, [backgroundCity]);
 
-          </div>
-        )}
+    // Update clock every minute
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setClockNow(Date.now());
+        }, 60000);
 
-        {/* WEATHER LOADING */}
-        {weatherLoading && (
-          <p className="loading">
-            Retrieving weather information...
-          </p>
-        )}
+        return () => clearInterval(timer);
+    }, []);
 
-        {/* WEATHER ERROR */}
-        {weatherError && (
-          <p className="error">
-            {weatherError}
-          </p>
-        )}
+    // Handle city selection
+    const handleCitySelect = (location) => {
+        setSelectedLocation(location || null);
+        setSelectedDate(null);
+        setSelectedHour(null);
+    };
 
-        {/* CURRENT WEATHER */}
-        {currentWeather && (
-          <div className="location-info">
+    // Current weather
+    const currentWeather = weatherData?.current;
 
-            <h2>☀️ Current Weather</h2>
+    // Today's date according to the weather API
+    const todayDate = currentWeather?.time?.slice(0, 10);
 
-            {/* Local date and time */}
-            {localDateTime && (
-              <p>
-                <strong>Local date and time:</strong>{" "}
-                {localDateTime}
-              </p>
-            )}
+    // Selected date or today
+    const activeDate = selectedDate || todayDate;
 
-            {/* Weather data timestamp */}
-            <p>
-              <strong>Weather data time:</strong>{" "}
-              {currentWeather.time}
-            </p>
+    // Display selected hour or current weather
+    const displayedWeather = selectedHour || currentWeather;
 
-            {/* Weather icon and description */}
-            {weatherInfo && (
-              <div>
-                <WeatherIcon
-                  icon={weatherInfo.icon}
-                  size={64}
+    // Get location timezone
+    const timezone = weatherData?.timezone;
+
+    // Format local date and time
+    const localDateTime = timezone
+        ? new Intl.DateTimeFormat("en-GB", {
+            timeZone: timezone,
+            dateStyle: "full",
+            timeStyle: "short",
+        }).format(new Date(clockNow))
+        : null;
+
+    // Handle selecting a day
+    const handleDaySelect = (date) => {
+        setSelectedDate(date);
+
+        // Restore current weather when today is selected
+        if (date === todayDate) {
+            setSelectedHour(null);
+            return;
+        }
+
+        // Find the first available hour of the selected day
+        const firstHourIndex = weatherData?.hourly?.time?.findIndex(
+            (time) => time.slice(0, 10) === date
+        );
+
+        if (firstHourIndex === undefined || firstHourIndex === -1) {
+            setSelectedHour(null);
+            return;
+        }
+
+        const hourly = weatherData.hourly;
+
+        // Create the selected hour's weather object
+        const firstHour = {
+            time: hourly.time[firstHourIndex],
+            temperature_2m: hourly.temperature_2m?.[firstHourIndex],
+            relative_humidity_2m:
+                hourly.relative_humidity_2m?.[firstHourIndex],
+            apparent_temperature:
+                hourly.apparent_temperature?.[firstHourIndex],
+            precipitation_probability:
+                hourly.precipitation_probability?.[firstHourIndex],
+            weather_code: hourly.weather_code?.[firstHourIndex],
+            is_day: hourly.is_day?.[firstHourIndex],
+            wind_speed_10m: hourly.wind_speed_10m?.[firstHourIndex],
+            uv_index: hourly.uv_index?.[firstHourIndex],
+            visibility: hourly.visibility?.[firstHourIndex],
+            surface_pressure: hourly.surface_pressure?.[firstHourIndex],
+        };
+
+        setSelectedHour(firstHour);
+    };
+
+    // Interpret weather code
+    const weatherInfo = displayedWeather
+        ? formatWeather(
+            displayedWeather.weather_code,
+            displayedWeather.is_day
+        )
+        : null;
+
+    // Generate weather recommendation
+    const recommendation = displayedWeather
+        ? getRecommendation({
+            weatherCode: displayedWeather.weather_code,
+            temperature: displayedWeather.temperature_2m,
+            windSpeed: displayedWeather.wind_speed_10m,
+            isDay: displayedWeather.is_day,
+        })
+        : null;
+
+    return (
+        <div
+            className={`App ${theme}-theme`}
+            style={{
+                backgroundImage: cityBackground.imageUrl
+                    ? `linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)), url("${cityBackground.imageUrl}")`
+                    : theme === "dark"
+                        ? "linear-gradient(135deg, #172235, #26364b)"
+                        : "linear-gradient(135deg, #dceef8, #f4e6d7)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundAttachment: "fixed",
+                minHeight: "100vh",
+            }}
+        >
+            <main className="location-card">
+
+                {/* APPLICATION HEADER */}
+                <AppHeader
+                    theme={theme}
+                    toggleTheme={toggleTheme}
+                    onCitySelect={handleCitySelect}
                 />
 
-                <h3>{weatherInfo.description}</h3>
-                <WeatherRecommendation message={recommendation} />
-              </div>
+                {/* LOCATION LOADING */}
+                {!selectedLocation && locationLoading && (
+                    <LoadingState message="Detecting your location..." />
+                )}
+
+                {/* LOCATION ERROR */}
+                {!selectedLocation && locationError && (
+                    <ErrorMessage message={locationError} />
+                )}
+
+                {/* LOCATION HEADER */}
+                {(displayCity || displayCountry) && (
+                    <LocationHeader
+                        city={displayCity}
+                        country={displayCountry}
+                        localDateTime={localDateTime}
+                    />
+                )}
+
+                {/* GEOCODING ERROR */}
+                {geocodingError && !selectedLocation && (
+                    <ErrorMessage message={geocodingError} />
+                )}
+
+                {/* WEATHER LOADING */}
+                {weatherLoading && (
+                    <LoadingState message="Retrieving weather information..." />
+                )}
+
+                {/* WEATHER ERROR */}
+                {weatherError && (
+                    <ErrorMessage message={weatherError} />
+                )}
+
+                {/* CURRENT WEATHER */}
+                {displayedWeather && (
+                    <section className="current-weather-section">
+
+                        {/* MAIN WEATHER CARD */}
+                        <MainWeatherCard
+                            weather={displayedWeather}
+                            weatherInfo={weatherInfo}
+                            recommendation={recommendation}
+                        />
+
+                        {/* WEATHER DETAILS */}
+                        <div className="weather-details-row">
+                            <WeatherDetails weather={displayedWeather} />
+                        </div>
+
+                    </section>
+                )}
+
+                {/* HOURLY FORECAST */}
+                {displayedWeather && (
+                    <HourlyForecast
+                        hourly={weatherData?.hourly}
+                        currentWeather={currentWeather}
+                        selectedDate={activeDate}
+                        selectedTime={selectedHour?.time || null}
+                        onHourSelect={setSelectedHour}
+                    />
+                )}
+
+                {/* SEVEN-DAY FORECAST */}
+                {displayedWeather && (
+                    <SevenDayForecast
+                        daily={weatherData?.daily}
+                        selectedDate={activeDate}
+                        onDaySelect={handleDaySelect}
+                    />
+                )}
+
+            </main>
+
+            {/* IMAGE ATTRIBUTION */}
+            {cityBackground.sourceUrl && (
+                <p className="image-attribution">
+                    Background image:{" "}
+                    {cityBackground.attribution || "Wikimedia Commons"}
+
+                    {" · "}
+
+                    <a
+                        href={cityBackground.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        View image source
+                    </a>
+
+                    {cityBackground.licenseUrl && (
+                        <>
+                            {" · "}
+
+                            <a
+                                href={cityBackground.licenseUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                Image license
+                            </a>
+                        </>
+                    )}
+                </p>
             )}
 
-            {/* Weather measurements */}
-            <p>
-              <strong>Temperature:</strong>{" "}
-              {currentWeather.temperature_2m} °C
-            </p>
-
-            <p>
-              <strong>Feels like:</strong>{" "}
-              {currentWeather.apparent_temperature} °C
-            </p>
-
-            {/* Weather Details */}
-            <WeatherDetails weather={currentWeather} />
-            <p className="success">
-              Weather retrieved successfully! 🎉
-            </p>
-            {/* Hourly Forecast */}
-            <HourlyForecast
-              hourly={weatherData?.hourly}
-              currentWeather={currentWeather}
-            />
-          </div>
-        )}
-
-      </main>
-    </div>
-  );
+        </div>
+    );
 }
 
 export default App;

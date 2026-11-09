@@ -3,47 +3,43 @@ import React from "react";
 import WeatherIcon from "./WeatherIcon";
 
 function HourlyForecastItem({
-    time,
-    temperature,
-    weatherInfo,
-    precipitationProbability,
-    isCurrent = false,
+  time,
+  temperature,
+  weatherInfo,
+  precipitationProbability,
+  isCurrent = false,
+  isSelected = false,
+  onClick,
 }) {
-    return (
-        <div
-            className={`hourly-forecast-item ${isCurrent ? "current-hour" : ""
-                }`}
-        >
-            {/* Forecast time */}
-            <p>{time}</p>
+  return (
+    <button
+      type="button"
+      className={`hourly-forecast-item ${
+        isCurrent ? "current-hour" : ""
+      } ${isSelected ? "selected-hour" : ""}`}
+      onClick={onClick}
+    >
+      <p>{time}</p>
 
-            {/* Weather icon */}
-            <WeatherIcon
-                icon={weatherInfo?.icon || "cloud"}
-                size={32}
-            />
+      <WeatherIcon
+        icon={weatherInfo?.icon || "cloud"}
+        size={32}
+      />
 
-            {/* Temperature */}
-            <h3>
-                {temperature !== null && temperature !== undefined
-                    ? `${temperature}°`
-                    : "--"}
-            </h3>
+      <h3>
+        {temperature !== null && temperature !== undefined
+          ? `${temperature}°`
+          : "--"}
+      </h3>
 
-            {/* Weather condition */}
-            <p>
-                {weatherInfo?.description || "Unavailable"}
-            </p>
+      <p>{weatherInfo?.description || "Unavailable"}</p>
 
-            {/* Precipitation probability */}
-            {precipitationProbability !== null &&
-                precipitationProbability !== undefined && (
-                    <small>
-                        💧 {precipitationProbability}%
-                    </small>
-                )}
-        </div>
-    );
+      {precipitationProbability !== null &&
+        precipitationProbability !== undefined && (
+          <small>💧 {precipitationProbability}%</small>
+        )}
+    </button>
+  );
 }
 
 export default HourlyForecastItem;
