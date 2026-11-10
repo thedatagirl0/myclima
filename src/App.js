@@ -282,7 +282,6 @@ function App() {
                         city={displayCity}
                         country={displayCountry}
                         localDateTime={localDateTime}
-                        isApproximate={!selectedLocation}
                     />
                 )}
 
