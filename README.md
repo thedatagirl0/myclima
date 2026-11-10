@@ -1,70 +1,76 @@
-# Getting Started with Create React App
+ 🌤️ MyClima — Smart Weather App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<p align="center">
+  <a href="https://myclima-nine.vercel.app">
+    <strong>🚀 Visit MyClima — Live Demo</strong>
+  </a>
+</p>
 
-## Available Scripts
+ 📌 About the Project
 
-In the project directory, you can run:
+MyClima is a full-stack weather application that allows users to check current weather conditions and a 7-day weather forecast for different cities around the world.
 
-### `npm start`
+The application uses geolocation to detect the user's current location and provides a city search feature for exploring weather conditions anywhere.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+ ✨ Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- 📍 Automatic location detection
+- 🔍 Search for cities around the world
+- 🌡️ Current weather conditions
+- 📅 7-day weather forecast
+- 🌤️ Weather icons and visual information
+- 💡 Weather-based recommendations
+- 🌓 Dark and light mode
+- ⚡ Loading and error handling
+- 🌐 Responsive user interface
 
-### `npm test`
+ 🛠️ Technologies Used
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Frontend: React.js, JavaScript, HTML5, CSS3
+- HTTP Requests: Axios
+- Icons: Lucide React
+- Weather Data: Open-Meteo API
+- Geocoding: Open-Meteo Geocoding API
+- Deployment: Vercel
+- Version Control: Git & GitHub
 
-### `npm run build`
+ 🌍 APIs
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- [Open-Meteo Weather API](https://open-meteo.com/)
+- [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+ 💻 Run Locally
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository:
 
-### `npm run eject`
+   ```bash
+   git clone https://github.com/thedatagirl0/myclima.git
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Navigate to the project directory:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```bash
+   cd myclima
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. Install dependencies:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+4. Start the development server:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+   ```bash
+   npm start
+   ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Code Splitting
+ 🚀 Live Demo
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+[https://myclima-nine.vercel.app](https://myclima-nine.vercel.app)
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Built with ❤️ using React.js
