@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 
-import useGeolocation from "./hooks/useGeolocation";
+import useIpGeolocation from "./hooks/useIpGeolocation";
 import useWeather from "./hooks/useWeather";
 import useTheme from "./hooks/useTheme";
 
@@ -29,17 +29,7 @@ function App() {
     // Theme management
     const { theme, toggleTheme } = useTheme();
 
-    // Get user's original location
-    const {
-        coordinates,
-        city,
-        country,
-        loading: locationLoading,
-        error: locationError,
-        geocodingError,
-    } = useGeolocation();
-
-    // Store manually selected city and restore it after refresh.
+    // Resolve a default location without requesting browser location permission.
     const [selectedLocation, setSelectedLocation] = useState(() => {
         if (typeof window === "undefined") {
             return null;
@@ -53,6 +43,14 @@ function App() {
         }
     });
 
+    const {
+        coordinates,
+        city,
+        country,
+        loading: locationLoading,
+        error: locationError,
+    } = useIpGeolocation(!selectedLocation);
+
     useEffect(() => {
         if (selectedLocation) {
             localStorage.setItem(
@@ -65,7 +63,7 @@ function App() {
         localStorage.removeItem("weather-selected-location");
     }, [selectedLocation]);
 
-    // Use selected city coordinates or original device coordinates
+    // Prefer a manually selected city over the approximate IP-based location.
     const weatherCoordinates = selectedLocation
         ? {
             latitude: selectedLocation.latitude,
@@ -270,7 +268,7 @@ function App() {
 
                 {/* LOCATION LOADING */}
                 {!selectedLocation && locationLoading && (
-                    <LoadingState message="Detecting your location..." />
+                    <LoadingState message="Finding your approximate location..." />
                 )}
 
                 {/* LOCATION ERROR */}
@@ -284,12 +282,8 @@ function App() {
                         city={displayCity}
                         country={displayCountry}
                         localDateTime={localDateTime}
+                        isApproximate={!selectedLocation}
                     />
-                )}
-
-                {/* GEOCODING ERROR */}
-                {geocodingError && !selectedLocation && (
-                    <ErrorMessage message={geocodingError} />
                 )}
 
                 {/* WEATHER LOADING */}

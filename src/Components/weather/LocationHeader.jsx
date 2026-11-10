@@ -6,6 +6,7 @@ function LocationHeader({
     city,
     country,
     localDateTime,
+    isApproximate,
 }) {
     return (
         <section className="location-header">
@@ -21,6 +22,12 @@ function LocationHeader({
                     </div>
                 </div>
             </div>
+
+            {isApproximate && (
+                <p className="location-accuracy">
+                    Approximate location based on your internet connection
+                </p>
+            )}
 
             {localDateTime && (
                 <div className="location-date">
