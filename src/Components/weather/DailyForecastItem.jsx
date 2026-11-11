@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Tooltip from "@mui/material/Tooltip";
 import WeatherIcon from "./WeatherIcon";
 import formatWeather from "../../utils/formatWeather";
 
@@ -33,60 +34,96 @@ function DailyForecastItem({
 
     // Identify the weather condition
     const weatherInfo = formatWeather(weatherCode, 1);
+    const descriptionRef = useRef(null);
+    const [isDescriptionClipped, setIsDescriptionClipped] = useState(false);
+
+    useEffect(() => {
+        const descriptionElement = descriptionRef.current;
+        if (!descriptionElement) {
+            return undefined;
+        }
+
+        const updateTooltipVisibility = () => {
+            const isSmallScreen = window.matchMedia("(max-width: 520px)").matches;
+            setIsDescriptionClipped(
+                isSmallScreen &&
+                    descriptionElement.scrollWidth >
+                        descriptionElement.clientWidth
+            );
+        };
+
+        updateTooltipVisibility();
+        window.addEventListener("resize", updateTooltipVisibility);
+
+        const resizeObserver =
+            typeof ResizeObserver !== "undefined"
+                ? new ResizeObserver(updateTooltipVisibility)
+                : null;
+        resizeObserver?.observe(descriptionElement);
+
+        return () => {
+            window.removeEventListener("resize", updateTooltipVisibility);
+            resizeObserver?.disconnect();
+        };
+    }, [weatherInfo.description]);
+
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onClick();
+        }
+    };
 
     return (
-        <button
-            type="button"
+        <tr
             className={`daily-forecast-item ${
                 isSelected ? "selected-day" : ""
             }`}
             onClick={onClick}
-            aria-pressed={isSelected}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            aria-selected={isSelected}
         >
-            {/* Day and date */}
-            <div className="daily-forecast-date">
+            <td className="daily-forecast-date">
                 <h3>{dateInfo.day}</h3>
                 <p>{dateInfo.fullDate}</p>
-            </div>
+            </td>
 
-            {/* Weather icon and description */}
-            <div className="daily-forecast-weather">
-                <WeatherIcon
-                    icon={weatherInfo.icon}
-                    size={36}
-                />
-                <p>{weatherInfo.description}</p>
-            </div>
+            <td className="daily-forecast-weather">
+                <WeatherIcon icon={weatherInfo.icon} size={36} />
+                <Tooltip
+                    describeChild
+                    title={
+                        isDescriptionClipped ? weatherInfo.description : ""
+                    }
+                    enterTouchDelay={0}
+                >
+                    <span ref={descriptionRef}>{weatherInfo.description}</span>
+                </Tooltip>
+            </td>
 
-            {/* Maximum and minimum temperatures */}
-            <div className="daily-forecast-temperatures">
-                <strong>
-                    {maxTemperature !== null &&
-                    maxTemperature !== undefined
-                        ? `${Math.round(maxTemperature)}°`
-                        : "--"}
-                </strong>
+            <td className="daily-forecast-temperature high-temperature">
+                {maxTemperature !== null && maxTemperature !== undefined
+                    ? `${Math.round(maxTemperature)}°`
+                    : "--"}
+            </td>
 
-                <span>
-                    {minTemperature !== null &&
-                    minTemperature !== undefined
-                        ? `${Math.round(minTemperature)}°`
-                        : "--"}
-                </span>
-            </div>
+            <td className="daily-forecast-temperature low-temperature">
+                {minTemperature !== null && minTemperature !== undefined
+                    ? `${Math.round(minTemperature)}°`
+                    : "--"}
+            </td>
 
-            {/* Additional daily information */}
-            <div className="daily-forecast-details">
+            <td className="daily-forecast-details">
                 {precipitationProbability !== null &&
-                precipitationProbability !== undefined && (
-                    <p>💧 {precipitationProbability}%</p>
-                )}
-
+                    precipitationProbability !== undefined && (
+                        <p>💧 {precipitationProbability}%</p>
+                    )}
                 {uvIndex !== null && uvIndex !== undefined && (
                     <p>☀️ UV {uvIndex}</p>
                 )}
-            </div>
-        </button>
+            </td>
+        </tr>
     );
 }
 
